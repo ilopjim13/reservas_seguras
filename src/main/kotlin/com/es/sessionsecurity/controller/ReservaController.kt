@@ -1,8 +1,11 @@
 package com.es.sessionsecurity.controller
 
+import com.es.sessionsecurity.error.exception.BadRequestException
 import com.es.sessionsecurity.model.Reserva
 import com.es.sessionsecurity.service.ReservaService
 import com.es.sessionsecurity.service.SessionService
+import com.es.sessionsecurity.service.UsuarioService
+import com.es.sessionsecurity.util.CipherUtils
 import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.beans.factory.annotation.Autowired
@@ -19,6 +22,8 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/reservas")
 class ReservaController {
 
+    @Autowired
+    private lateinit var usuarioService: UsuarioService
     @Autowired
     private lateinit var reservaService: ReservaService
     @Autowired
@@ -42,12 +47,23 @@ class ReservaController {
 
         // 2º Comprobar la validez del token
         if (sessionService.checkToken(token)) {
-            // REALIZA LA CONSULTA A LA BASE DE DATOS
-
+            val userToken = sessionService.findByToken(token ?: "")
+            return if (userToken.usuario.rol == "USER") {
+                val userBD = usuarioService.findByName(nombre)
+                val cipherUtils = CipherUtils()
+                val tokenUserBD = cipherUtils.encrypt(userBD.nombre)
+                if (token == tokenUserBD) {
+                    ResponseEntity<List<Reserva>?>(reservaService.findByUsuario_Nombre(nombre), HttpStatus.OK)
+                } else {
+                    throw BadRequestException("El usuario ${userToken.usuario.nombre} no puede ver las reservas de otros usuarios")
+                }
+            } else {
+                ResponseEntity<List<Reserva>?>(reservaService.findByUsuario_Nombre(nombre), HttpStatus.OK)
+            }
         }
 
         // RESPUESTA
-        return ResponseEntity<List<Reserva>?>(null, HttpStatus.OK); // cambiar null por las reservas
+        return ResponseEntity<List<Reserva>?>(null, HttpStatus.BAD_REQUEST) // cambiar null por las reservas
 
     }
 
@@ -59,15 +75,9 @@ class ReservaController {
         @RequestBody nuevaReserva: Reserva
     ) : ResponseEntity<Reserva?>{
 
-        /*
-        COMPROBAR QUE LA PETICIÓN ESTÁ CORRECTAMENTE AUTORIZADA PARA REALIZAR ESTA OPERACIÓN
-         */
-        // CÓDIGO AQUÍ
 
-        /*
-        LLAMAR AL SERVICE PARA REALIZAR LA L.N. Y LA LLAMADA A LA BASE DE DATOS
-         */
-        // CÓDIGO AQUÍ
+
+
 
         // RESPUESTA
         return ResponseEntity<Reserva?>(null, HttpStatus.CREATED); // cambiar null por la reserva

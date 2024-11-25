@@ -1,5 +1,6 @@
 package com.es.sessionsecurity.controller
 
+import com.es.sessionsecurity.model.Reserva
 import com.es.sessionsecurity.model.Usuario
 import com.es.sessionsecurity.service.UsuarioService
 import jakarta.servlet.http.Cookie
@@ -45,6 +46,14 @@ class UsuarioController {
 
         // RESPUESTA
         return ResponseEntity(mapOf("message" to "login correcto"), HttpStatus.OK)
-
     }
+
+
+    @PostMapping("/alta")
+    fun insert(
+        @RequestBody nuevoUsuario: Usuario
+    ): ResponseEntity<Usuario> {
+        return ResponseEntity<Usuario>(usuarioService.insert(nuevoUsuario), HttpStatus.OK)
+    }
+
 }

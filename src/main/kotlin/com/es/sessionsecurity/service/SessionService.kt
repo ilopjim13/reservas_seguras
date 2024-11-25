@@ -2,6 +2,7 @@ package com.es.sessionsecurity.service
 
 import com.es.sessionsecurity.error.exception.BadRequestException
 import com.es.sessionsecurity.model.Session
+import com.es.sessionsecurity.model.Usuario
 import com.es.sessionsecurity.repository.SessionRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -26,6 +27,10 @@ class SessionService {
         // Por último, comprobamos que la fecha sea válida
         return s.fechaExp.isAfter(LocalDateTime.now())
 
+    }
+
+    fun findByToken(token: String):Session {
+        return sessionRepository.findByToken(token).orElseThrow()
     }
 
 }

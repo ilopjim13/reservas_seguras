@@ -9,13 +9,17 @@ import java.util.Base64
 @Component
 class CipherUtils {
 
+    companion object {
+        private const val KEY = "adlkfjadsfovhoida"
+    }
+
     /**
      * Método para cifrar una cadena usando un cifrado por clave simétrica
      * La key proporcionada por parámetros debe ser la misma que se vaya a usar a la hora de descifrar
      */
-    fun encrypt(cadenaACifrar: String, key: String): String {
+    fun encrypt(cadenaACifrar: String): String {
         // CON LA KEY PROPORCIONADA SE GENERA UNA CLAVE PÚBLICA
-        val keyBytes = key.toByteArray(Charsets.UTF_8).copyOf(16) // AES necesita claves de 16, 24 o 32 bytes
+        val keyBytes = KEY.toByteArray(Charsets.UTF_8).copyOf(16) // AES necesita claves de 16, 24 o 32 bytes
         val secretKey = SecretKeySpec(keyBytes, "AES")
 
         // CON ESA CLAVE PÚBLICA SE PUEDE CIFRAR LA CADENA
@@ -30,10 +34,10 @@ class CipherUtils {
      * Método para descifrar una cadena usando un cifrado por clave simétrica
      * La key proporcionada por parámetros debe ser la misma que se usó para cifrar la cadena
      */
-    fun decrypt(cadenaCifrada: String, key: String): String {
+    fun decrypt(cadenaCifrada: String): String {
 
         // CON LA KEY PROPORCIONADA SE GENERA UNA CLAVE PÚBLICA
-        val keyBytes = key.toByteArray(Charsets.UTF_8).copyOf(16) // AES necesita claves de 16, 24 o 32 bytes
+        val keyBytes = KEY.toByteArray(Charsets.UTF_8).copyOf(16) // AES necesita claves de 16, 24 o 32 bytes
         val secretKey = SecretKeySpec(keyBytes, "AES")
 
         // CON ESA CLAVE PÚBLICA SE PUEDE DESCIFRAR EL MENSAJE

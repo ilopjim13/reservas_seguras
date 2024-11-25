@@ -6,6 +6,7 @@ import com.es.sessionsecurity.model.Session
 import com.es.sessionsecurity.model.Usuario
 import com.es.sessionsecurity.repository.SessionRepository
 import com.es.sessionsecurity.repository.UsuarioRepository
+import com.es.sessionsecurity.util.CipherUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
@@ -33,11 +34,13 @@ class UsuarioService {
             .findByNombre(userLogin.nombre)
             .orElseThrow{NotFoundException("El usuario proporcionado no existe en BDD")}
 
-        // 2 Compruebo nombre y pass
+        val cipherUtils = CipherUtils()
+        val userLoginEncrypt = cipherUtils.encrypt(userLogin.password)
         if(userBD.password == userLogin.password) {
             // 3 GENERAR EL TOKEN
+            val cipherUtils = CipherUtils()
             var token: String = ""
-            token = UUID.randomUUID().toString()
+            token = cipherUtils.encrypt(userBD.nombre)
 
             // 4 CREAR UNA SESSION
             val s: Session = Session(
@@ -55,6 +58,27 @@ class UsuarioService {
             // SI LA CONTRASEÑA NO COINCIDE, LANZAMOS EXCEPCIÓN
             throw NotFoundException("Las credenciales son incorrectas")
         }
+    }
+
+    fun findByName(nombre: String):Usuario {
+        return usuarioRepository.findByNombre(nombre).orElseThrow{NotFoundException("El usuario proporcionado no existe en BDD")}
+    }
+
+    fun insert(nuevoUsuario: Usuario):Usuario {
+        if(nuevoUsuario.password.isBlank() || nuevoUsuario.nombre.isBlank()) {
+            throw BadRequestException("Los campos nombre y password son obligatorios")
+        }
+
+        if (nuevoUsuario.rol.uppercase() !in listOf("ADMIN", "USER") ) {
+            throw BadRequestException("El campo rol debe ser USER o ADMIN")
+        }
+
+        val cipherUtils = CipherUtils()
+        nuevoUsuario.password =cipherUtils.encrypt(nuevoUsuario.password)
+
+        usuarioRepository.save(nuevoUsuario)
+
+        return usuarioRepository.findByNombre(nuevoUsuario.nombre).orElseThrow()
     }
 
 }
