@@ -15,4 +15,7 @@ class ReservaService {
         return reservaRepository.findByUsuario_Nombre(nombre)
     }
 
+    fun insert(reserva: Reserva):Reserva {
+        return reservaRepository.save(reserva)
+    }
 }

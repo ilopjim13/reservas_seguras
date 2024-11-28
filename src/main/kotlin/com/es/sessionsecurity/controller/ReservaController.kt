@@ -72,15 +72,35 @@ class ReservaController {
      */
     @PostMapping("/")
     fun insert(
-        @RequestBody nuevaReserva: Reserva
+        @RequestBody nuevaReserva: Reserva,
+        request: HttpServletRequest
     ) : ResponseEntity<Reserva?>{
 
+        val cookie: Cookie? = request.cookies.find { c: Cookie? ->  c?.name == "tokenSession"}
+        val token = cookie?.value
+
+        if (sessionService.checkToken(token)) {
+            val userToken = sessionService.findByToken(token ?: "")
+            return if (userToken.usuario.rol == "USER") {
+                val userRs = nuevaReserva.usuario
+                nuevaReserva.id = null
+                val cipherUtils = CipherUtils()
+                val tokenUserRs = cipherUtils.encrypt(userRs.nombre)
+                if (token == tokenUserRs) {
+                    ResponseEntity<Reserva?>(reservaService.insert(nuevaReserva), HttpStatus.CREATED)
+                } else {
+                    throw BadRequestException("El usuario ${userToken.usuario.nombre} no puede agregar una reserva de otros usuarios")
+                }
+            } else {
+                ResponseEntity<Reserva?>(reservaService.insert(nuevaReserva), HttpStatus.CREATED)
+            }
+        }
 
 
 
 
         // RESPUESTA
-        return ResponseEntity<Reserva?>(null, HttpStatus.CREATED); // cambiar null por la reserva
+        return ResponseEntity<Reserva?>(null, HttpStatus.BAD_REQUEST); // cambiar null por la reserva
     }
 
 }
